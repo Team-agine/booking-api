@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.vehicule-rental</groupId>
-	<artifactId>booking-api</artifactId>
+	<artifactId>bookings-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>booking-api</name>
-	<description>Demo project for Spring Boot</description>
+	<name>bookings-api</name>
+	<description>API Bookings for the project Vehicule Renta</description>
 
 	<properties>
 		<java.version>1.8</java.version>
@@ -56,13 +56,12 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-commons</artifactId>
-			<version>2.2.0.BUILD-SNAPSHOT</version>
-			<scope>compile</scope>
+			<version>2.1.4.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-			<version>2.2.0.BUILD-SNAPSHOT</version>
+			<version>2.1.4.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
