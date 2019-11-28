@@ -31,9 +31,10 @@ public final class BookingComponent {
 
             Iterable<Booking> iterator = bookingDao.findAll();
             iterator.forEach(booking -> {
-                if ((booking.getStartDate().compareTo(startDate) < 0 && startDate.compareTo(booking.getEndDate()) < 0)
-                    || (booking.getStartDate().compareTo(endDate) < 0 && endDate.compareTo(booking.getEndDate()) < 0)) {
-                    //vehiclesAvailable.remove(booking.getVehicleId());
+                if ((startDate.after(booking.getStartDate()) && startDate.before(booking.getEndDate()))
+                    || (endDate.after(booking.getStartDate()) && endDate.before(booking.getEndDate()))
+                    || (startDate.before(booking.getStartDate()) && endDate.after(booking.getEndDate()))) {
+                    vehiclesAvailable.remove(booking.getVehicleId());
                 }
                 System.out.println(booking.getVehicleId());
             });
@@ -41,8 +42,7 @@ public final class BookingComponent {
             System.out.println("booking.getVehicleId()");
             return allVehiclesAuthorised;
         }
-        //allVehiclesAuthorised = (VehicleForm[]) vehiclesAvailable.values().toArray();
-        return allVehiclesAuthorised;
+        return vehiclesAvailable.values().toArray(new VehicleForm[0]);
     }
 
     private static Integer getAgeOfUser(String id, RestTemplate restTemplate) {
