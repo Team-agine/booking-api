@@ -3,21 +3,19 @@ package com.vehiculerental.bookingapi.controllers;
 import com.google.common.collect.Iterables;
 import com.vehiculerental.bookingapi.components.BookingComponent;
 import com.vehiculerental.bookingapi.dao.BookingDao;
-import com.vehiculerental.bookingapi.models.Booking;
-import com.vehiculerental.bookingapi.models.VehicleForm;
-import com.vehiculerental.bookingapi.models.VehiclesAvailableForm;
+import com.vehiculerental.bookingapi.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.net.URI;
+import java.util.Date;
 
 @RestController
 public class BookingController {
@@ -50,23 +48,20 @@ public class BookingController {
     }
 
     @PostMapping(value = "/bookings")
-    public ResponseEntity<Booking> save(@RequestBody Booking newBooking) {
+    @ApiIgnore
+    private ResponseEntity<Booking> save(@RequestBody Booking newBooking) {
         try {
             newBooking.initializeId();
             Booking result = bookingDao.save(newBooking);
-            URI location = ServletUriComponentsBuilder
-                    .fromCurrentRequest()
-                    .path("/{id}")
-                    .buildAndExpand(result.getId())
-                    .toUri();
-            return ResponseEntity.created(location).build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (PersistenceException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PutMapping(value = "/bookings/{id}")
-    public ResponseEntity<Booking> update(@PathVariable String id, @RequestBody Booking bookingForUpdate) {
+    @ApiIgnore
+    private ResponseEntity<Booking> update(@PathVariable String id, @RequestBody Booking bookingForUpdate) {
         try {
             Booking result = bookingDao.findById(id).orElseThrow(EntityNotFoundException::new);
             if (bookingForUpdate.getVehicleId() != null) {
@@ -109,10 +104,40 @@ public class BookingController {
     }
 
     @PostMapping(value = "/bookings/vehicles-available")
-    public ResponseEntity<VehicleForm[]> findVehiclesAvailable(@Valid @RequestBody VehiclesAvailableForm vehiclesAvailableForm) {
+    public ResponseEntity<VehicleForm[]> findVehiclesAvailable(@Valid @RequestBody FindVehicleAvailableForm findVehicleAvailableForm) {
         try {
-            VehicleForm[] results = BookingComponent.findVehiclesAvailable(vehiclesAvailableForm, restTemplate, bookingDao);
+            VehicleForm[] results = BookingComponent.findVehiclesAvailable(findVehicleAvailableForm, restTemplate, bookingDao);
             return ResponseEntity.ok().body(results);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    @PostMapping(value = "/bookings/prepare")
+    public ResponseEntity<Booking> prepareBooking(@Valid @RequestBody PrepareBookingForm prepareBookingForm) {
+        VehicleForm vehicle = restTemplate.getForObject("http://vehicles-api/vehicles/" + prepareBookingForm.getVehicleId(), VehicleForm.class);
+        Booking booking = new Booking();
+        booking.initializeId();
+        booking.setVehicleId(prepareBookingForm.getVehicleId());
+        booking.setUserId(prepareBookingForm.getUserId());
+        booking.setStartDate(prepareBookingForm.getStartDate());
+        booking.setEndDate(prepareBookingForm.getEndDate());
+        booking.setEstimatedKm(prepareBookingForm.getEstimatedKm());
+        booking.setKmPrice(vehicle.getKmPrice());
+        booking.setBasePrice(vehicle.getBasePrice());
+        booking.setOrderIsConfirmed(false);
+        booking.setConfirmationDate(new Date());
+
+        return save(booking);
+    }
+
+    @PutMapping(value = "/bookings/validate/{id}")
+    public ResponseEntity<Booking> update(@PathVariable String id) {
+        try {
+            Booking result = bookingDao.findById(id).orElseThrow(EntityNotFoundException::new);
+            result.setOrderIsConfirmed(true);
+            bookingDao.flush();
+            return ResponseEntity.ok().body(result);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.noContent().build();
         }

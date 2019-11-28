@@ -12,8 +12,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @EnableConfigurationProperties
-@EnableDiscoveryClient
-//@EnableEurekaClient
+@EnableEurekaClient
 @EnableSwagger2
 public class BookingApiApplication {
 

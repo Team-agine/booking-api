@@ -11,8 +11,6 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
-import java.util.UUID;
-
 
 @Entity
 @Table(name="bookings")
@@ -28,7 +26,7 @@ public class Booking {
     private String vehicleId;
 
     @Column(name = "user_id")
-    @Size(min = 36, max = 36)
+    //@Size(min = 36, max = 36)
     @NotNull
     private String userId;
 
@@ -142,7 +140,7 @@ public class Booking {
         return orderIsConfirmed;
     }
 
-    public void setOrderIsConfirmed(boolean orderIsConfirmed) {
+    public void setOrderIsConfirmed(Boolean orderIsConfirmed) {
         this.orderIsConfirmed = orderIsConfirmed;
     }
 

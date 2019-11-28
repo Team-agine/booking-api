@@ -3,7 +3,7 @@ package com.vehiculerental.bookingapi.components;
 import com.vehiculerental.bookingapi.dao.BookingDao;
 import com.vehiculerental.bookingapi.models.Booking;
 import com.vehiculerental.bookingapi.models.VehicleForm;
-import com.vehiculerental.bookingapi.models.VehiclesAvailableForm;
+import com.vehiculerental.bookingapi.models.FindVehicleAvailableForm;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -11,18 +11,16 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public final class BookingComponent {
 
-    public static VehicleForm[] findVehiclesAvailable(VehiclesAvailableForm vehiclesAvailableForm, RestTemplate restTemplate, BookingDao bookingDao) {
+    public static VehicleForm[] findVehiclesAvailable(FindVehicleAvailableForm vehiclesAvailableForm, RestTemplate restTemplate, BookingDao bookingDao) {
         Integer ageOfUser = getAgeOfUser(vehiclesAvailableForm.getUserId(), restTemplate);
 
         VehicleForm[] allVehiclesAuthorised = getAllVehiclesAuthorised(ageOfUser, restTemplate);
-        Map<String, VehicleForm> vehiclesAvailable = Arrays.asList((VehicleForm[]) allVehiclesAuthorised)
-                .stream()
+        Map<String, VehicleForm> vehiclesAvailable = Arrays.stream((VehicleForm[]) allVehiclesAuthorised)
                 .collect(Collectors.toMap(e -> e.getId(), e -> e));
 
         try {
@@ -36,10 +34,8 @@ public final class BookingComponent {
                     || (startDate.before(booking.getStartDate()) && endDate.after(booking.getEndDate()))) {
                     vehiclesAvailable.remove(booking.getVehicleId());
                 }
-                System.out.println(booking.getVehicleId());
             });
         } catch (Exception e) {
-            System.out.println("booking.getVehicleId()");
             return allVehiclesAuthorised;
         }
         return vehiclesAvailable.values().toArray(new VehicleForm[0]);

@@ -1,10 +1,9 @@
 package com.vehiculerental.bookingapi.models;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Date;
 
-public class VehiclesAvailableForm {
+public class FindVehicleAvailableForm {
     @NotNull
     private String userId;
 
