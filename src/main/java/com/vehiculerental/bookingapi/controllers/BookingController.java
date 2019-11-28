@@ -1,17 +1,22 @@
 package com.vehiculerental.bookingapi.controllers;
 
 import com.google.common.collect.Iterables;
+import com.vehiculerental.bookingapi.components.BookingComponent;
 import com.vehiculerental.bookingapi.dao.BookingDao;
 import com.vehiculerental.bookingapi.models.Booking;
+import com.vehiculerental.bookingapi.models.VehicleForm;
+import com.vehiculerental.bookingapi.models.VehiclesAvailableForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
@@ -19,6 +24,9 @@ public class BookingController {
 
     @Autowired
     private BookingDao bookingDao;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @GetMapping(value = "/bookings")
     public ResponseEntity<Booking[]> findAll() {
@@ -58,7 +66,7 @@ public class BookingController {
     }
 
     @PutMapping(value = "/bookings/{id}")
-    public ResponseEntity<Booking> update(@PathVariable String id, @RequestBody Booking bookingForUpdate, HttpServletResponse response) {
+    public ResponseEntity<Booking> update(@PathVariable String id, @RequestBody Booking bookingForUpdate) {
         try {
             Booking result = bookingDao.findById(id).orElseThrow(EntityNotFoundException::new);
             if (bookingForUpdate.getVehicleId() != null) {
@@ -98,5 +106,15 @@ public class BookingController {
     @DeleteMapping(value = "/bookings/{id}")
     public void deleteById(@PathVariable String id) {
         bookingDao.deleteById(id);
+    }
+
+    @PostMapping(value = "/bookings/vehicles-available")
+    public ResponseEntity<VehicleForm[]> findVehiclesAvailable(@Valid @RequestBody VehiclesAvailableForm vehiclesAvailableForm) {
+        try {
+            VehicleForm[] results = BookingComponent.findVehiclesAvailable(vehiclesAvailableForm, restTemplate, bookingDao);
+            return ResponseEntity.ok().body(results);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.noContent().build();
+        }
     }
 }
